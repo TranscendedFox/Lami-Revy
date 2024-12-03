@@ -1,52 +1,52 @@
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS items;
 DROP TABLE IF EXISTS favorites;
-DROP TABLE IF EXISTS orders
-DROP TABLE IF EXISTS order_items
+DROP TABLE IF EXISTS orders;
+DROP TABLE IF EXISTS order_items;
 
 CREATE TABLE users (
-    UserID INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50) NOT NULL,
-    Email VARCHAR(100) NOT NULL UNIQUE,
-    Phone VARCHAR(15),
-    AddressCountry VARCHAR(50),
-    AddressCity VARCHAR(50),
-    Username VARCHAR(50) NOT NULL UNIQUE,
-    PasswordHash VARCHAR(255) NOT NULL, -- Store hashed passwords
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    phone VARCHAR(15),
+    address_city VARCHAR(50),
+    address_country VARCHAR(50),
+    username VARCHAR(50) NOT NULL UNIQUE,
+    hashed_password  VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE items (
-    ItemID INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(100) NOT NULL,
-    Price DECIMAL(10, 2) NOT NULL,
-    Stock INT NOT NULL DEFAULT 0
+    item_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0
 );
 
 CREATE TABLE favorites (
-    UserID INT NOT NULL,
-    ItemID INT NOT NULL,
-    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE,
-    FOREIGN KEY (ItemID) REFERENCES Items(ItemID) ON DELETE CASCADE,
-    UNIQUE(UserID, ItemID)
+    user_id INT NOT NULL,
+    item_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES items(item_id) ON DELETE CASCADE,
+    UNIQUE(user_id, item_id)
 );
 
 CREATE TABLE orders (
-    OrderID INT AUTO_INCREMENT PRIMARY KEY,
-    UserID INT NOT NULL,
-    CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ShippingAddress VARCHAR(255) NOT NULL,
-    TotalPrice DECIMAL(10, 2) NOT NULL,
-    Status ENUM('TEMP', 'CLOSE') DEFAULT 'TEMP',
-    FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE CASCADE
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    shipping_address VARCHAR(255) NOT NULL,
+    total_price DECIMAL(10, 2) NOT NULL,
+    status ENUM('TEMP', 'CLOSE') DEFAULT 'TEMP',
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
 CREATE TABLE order_items (
-    OrderID INT NOT NULL,
-    ItemID INT NOT NULL,
-    Quantity INT NOT NULL,
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID) ON DELETE CASCADE,
-    FOREIGN KEY (ItemID) REFERENCES Items(ItemID) ON DELETE CASCADE
-    UNIQUE(OrderID, ItemID)
+    order_id INT NOT NULL,
+    item_id INT NOT NULL,
+    quantity INT NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(order_id) ON DELETE CASCADE,
+    FOREIGN KEY (item_id) REFERENCES items(item_id) ON DELETE CASCADE,
+    UNIQUE(order_id, item_id)
 );
