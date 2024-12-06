@@ -27,3 +27,16 @@ def get_jwt_token(username, password):
     }
     response = requests.post(url, data=form_data)
     return response.json().get("jwt_token")
+
+
+def search_items(search_input):
+    url = f"{BASE_URL}/items/search/{search_input}"
+    response = requests.get(url)
+    return response.json()
+
+
+def get_all_items():
+    url = f"{BASE_URL}/items"
+    response = requests.get(url)
+    return response.json()
+

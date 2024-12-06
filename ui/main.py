@@ -1,7 +1,10 @@
 import streamlit as st
-from api.api import register_user, get_jwt_token
+from api.api import register_user, get_jwt_token, get_all_items, search_items
+import pandas as pd
 
 # Initialize session state variables
+if 'main' not in st.session_state:
+    st.session_state['main'] = True
 if 'show_registration_form' not in st.session_state:
     st.session_state['show_registration_form'] = False
 if 'jwt_token' not in st.session_state:
@@ -38,7 +41,7 @@ else:
     if st.sidebar.button("Register", key="sidebar_register_button"):
         st.session_state.show_registration_form = True
 
-# Main Content
+# Register Content
 if st.session_state.show_registration_form and not st.session_state['jwt_token']:
     st.header("Register")
     username = st.text_input("Username", key="register_username")
@@ -58,3 +61,34 @@ if st.session_state.show_registration_form and not st.session_state['jwt_token']
             st.session_state.show_registration_form = False  # Hide registration form after success
         else:
             st.error("Failed to register.")
+
+
+# Main
+if st.session_state['main']:
+    st.header("Search")
+    search_query = st.text_input("Enter your search query:", key="search_bar")
+
+    # Simulate search functionality
+    if st.button("Search", key="search_button"):
+        items_data = search_items(search_query)
+        if items_data:
+            df = pd.DataFrame(items_data)
+
+            st.header("Search Results")
+            st.dataframe(df)
+        else:
+            st.error(f"No Results for {search_query}")
+
+    items_response = get_all_items()
+
+    if items_response:
+        #items_data = items_response.json()
+        if items_response is not None:
+            df = pd.DataFrame(items_response)
+
+            st.header("Items")
+            st.dataframe(df)
+        else:
+            st.error("Unexpected data format received.")
+    else:
+        st.error(f"Failed to fetch items. Status code: {items_response.status_code}")

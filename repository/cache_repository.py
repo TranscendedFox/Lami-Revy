@@ -13,14 +13,8 @@ def get_cache_entity(key: str) -> Optional[str]:
         return None
 
 
-def create_cache_entity(key: str, value: str):
-    if not redis_client.exists(key):
-        redis_client.setex(key, config.REDIS_TTL, value)
-
-
 def update_cache_entity(key: str, value: str):
-    if redis_client.exists(key):
-        redis_client.setex(key, config.REDIS_TTL, value)
+    redis_client.setex(key, config.REDIS_TTL, value)
 
 
 def remove_cache_entity(key: str):

@@ -49,3 +49,16 @@ CREATE TABLE order_items (
     FOREIGN KEY (item_id) REFERENCES items(item_id) ON DELETE CASCADE,
     UNIQUE(order_id, item_id)
 );
+
+-- Creating 10 items for example
+INSERT INTO items (name, price, stock) VALUES
+('MMA Training Gloves', 49.99, 20),
+('Punching Bag', 129.99, 15),
+('Mouth Guard', 19.99, 50),
+('Hand Wraps', 9.99, 100),
+('Shin Guards', 59.99, 25),
+('MMA Shorts', 39.99, 30),
+('Headgear', 79.99, 10),
+('Focus Mitts', 34.99, 40),
+('MMA Cage Wall Pads', 199.99, 5),
+('MMA Resistance Bands', 24.99, 35);

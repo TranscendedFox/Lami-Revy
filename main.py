@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from controller.auth_controller import router as auth_router
 from controller.user_controller import router as user_router
+from controller.items_controller import router as items_router
 from repository.database import database
 
 app = FastAPI()
@@ -18,3 +19,4 @@ async def shutdown():
 
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(items_router)
