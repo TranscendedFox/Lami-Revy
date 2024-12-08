@@ -15,3 +15,5 @@ streamlit==1.40.0
 numpy
 pandas
 re
+requests
+jose

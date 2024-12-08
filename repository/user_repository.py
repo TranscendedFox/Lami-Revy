@@ -8,7 +8,7 @@ TABLE_NAME = "users"
 
 
 async def get_by_id(user_id: int) -> Optional[User]:
-    query = f"SELECT * FROM {TABLE_NAME} WHERE id=:user_id"
+    query = f"SELECT * FROM {TABLE_NAME} WHERE user_id=:user_id"
     result = await database.fetch_one(query, values={"user_id": user_id})
     if result:
         return User(**result)
@@ -36,7 +36,6 @@ async def get_by_username(username: str) -> Optional[User]:
         return User(**result_dict)
     else:
         return None
-
 
 
 async def create_user(user: UserRequest, hashed_password: str):

@@ -1,6 +1,4 @@
-from typing import Optional
 from repository import items_repository
-from fastapi import Query
 import re
 
 

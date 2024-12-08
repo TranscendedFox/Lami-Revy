@@ -40,3 +40,27 @@ def get_all_items():
     response = requests.get(url)
     return response.json()
 
+
+def get_favorites(token):
+    url = f"{BASE_URL}/favorites"
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(url, headers=headers)
+    if response is not None:
+        return response.json()
+    else:
+        return None
+
+
+def add_favorites(token, item_id):
+    url = f"{BASE_URL}/favorites/{item_id}"
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.post(url, headers=headers)
+    return response
+
+
+def remove_favorite(token, item_id):
+    url = f"{BASE_URL}/favorites/{item_id}"
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.delete(url, headers=headers)
+    return response
+

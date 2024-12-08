@@ -36,7 +36,7 @@ async def get_user_by_id(user_id: int) -> Optional[UserResponse]:
     user = await user_repository.get_by_id(user_id)
     if user:
         return UserResponse(
-            id=user.id,
+            id=user.user_id,
             username=user.username,
             first_name=user.first_name,
             last_name=user.last_name,
