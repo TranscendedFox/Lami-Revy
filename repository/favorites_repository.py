@@ -64,3 +64,5 @@ async def update_cache(user_id):
             item.json()
         items_json = json.dumps([item.dict() for item in items])
         cache_repository.update_cache_entity(cache_id, items_json)
+    else:
+        cache_repository.remove_cache_entity(cache_id)

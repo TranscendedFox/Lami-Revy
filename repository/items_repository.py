@@ -7,11 +7,12 @@ from model.item import Item
 TABLE_NAME = "items"
 ALL_ITEMS_CACHE_ID = "all_items"
 
+
 async def get_all_items():
     if cache_repository.is_key_exists(ALL_ITEMS_CACHE_ID):
         string_items = cache_repository.get_cache_entity(ALL_ITEMS_CACHE_ID)
         return json.loads(string_items)
-    query = f"SELECT * FROM {TABLE_NAME}"
+    query = f"SELECT * FROM {TABLE_NAME} WHERE stock > 0"
     results = await database.fetch_all(query)
     if results:
         items = [Item(**result) for result in results]
@@ -62,3 +63,36 @@ async def get_items_by_search(name_query: Optional[List[str]] = None, conditions
         return [Item(**result) for result in results]
     else:
         return None
+
+
+async def get_items_by_list(items: List[int]):
+    placeholders = ", ".join([":item_id_" + str(i) for i in range(len(items))])
+    values = {f"item_id_{i}": item_id for i, item_id in enumerate(items)}
+
+    query = f"""
+            SELECT * FROM {TABLE_NAME}
+            WHERE item_id IN ({placeholders})
+        """
+
+    rows = await database.fetch_all(query, values=values)
+    return [Item(**row) for row in rows]
+
+
+async def reduce_item_quantity(item_id, amount):
+    query_check_stock = f"""
+            SELECT stock FROM {TABLE_NAME}
+            WHERE item_id = :item_id
+        """
+    current_stock = await database.fetch_one(query_check_stock, values={"item_id": item_id})
+
+    if not current_stock or current_stock["stock"] < amount:
+        raise ValueError(
+            f"Insufficient stock for item_id={item_id}. Available: {current_stock['stock'] if current_stock else 0}, Requested: {amount}")
+
+    # Update the stock if sufficient
+    query_update_stock = f"""
+            UPDATE {TABLE_NAME}
+            SET stock = stock - :amount
+            WHERE item_id = :item_id
+        """
+    await database.execute(query_update_stock, values={"amount": amount, "item_id": item_id})

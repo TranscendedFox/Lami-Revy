@@ -1,5 +1,5 @@
 import streamlit as st
-from api.api import get_favorites, remove_favorite
+from api.api import get_favorites, remove_favorite, add_item_to_order
 import pandas as pd
 
 
@@ -16,7 +16,7 @@ def set_favorites_page():
 
             st.header("Favorite Items")
             for index, row in df.iterrows():
-                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+                col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 2])
                 with col1:
                     st.text(row["name"])
                 with col2:
@@ -25,9 +25,14 @@ def set_favorites_page():
                     st.text(f"Stock: {row['stock']}")
                 with col4:
                     if st.session_state['jwt_token'] is not None:
-                        if st.button("Remove", key=f"add_{row['item_id']}"):
+                        if st.button("Add to Order", key=f"add_item_{row['item_id']}"):
+                            add_item_to_order(st.session_state['jwt_token'], row['item_id'])
+                with col5:
+                    if st.session_state['jwt_token'] is not None:
+                        if st.button("Remove", key=f"remove_favorite_{row['item_id']}"):
                             remove_favorite(st.session_state['jwt_token'], row['item_id'])
                             st.rerun()
+
         else:
             st.error("Unexpected data format received.")
     else:

@@ -64,3 +64,28 @@ def remove_favorite(token, item_id):
     response = requests.delete(url, headers=headers)
     return response
 
+
+def add_item_to_order(token, item_id):
+    url = f"{BASE_URL}/orders/{item_id}"
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.post(url, headers=headers)
+    return response
+
+
+def get_orders(token):
+    url = f"{BASE_URL}/orders"
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(url, headers=headers)
+    return response.json()
+
+
+def remove_item_from_order(token, order_id, item_id):
+    url = f"{BASE_URL}/orders/{order_id}/{item_id}"
+    headers = {"Authorization": f"Bearer {token}"}
+    requests.delete(url, headers=headers)
+
+
+def confirm_order(token):
+    url = f"{BASE_URL}/orders"
+    headers = {"Authorization": f"Bearer {token}"}
+    requests.post(url, headers=headers)

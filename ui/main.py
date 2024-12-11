@@ -1,8 +1,9 @@
 import streamlit as st
-from api.api import get_jwt_token, get_all_items, search_items, add_favorites
+from api.api import get_jwt_token, get_all_items, search_items, add_favorites, add_item_to_order
 import pandas as pd
 from register import set_register_page
 from favorites import set_favorites_page
+from orders import set_orders_page
 
 # Initialize session state variables
 if 'main' not in st.session_state:
@@ -25,6 +26,8 @@ if st.session_state['jwt_token']:
         st.session_state['main'] = 'main'
     if st.sidebar.button("Favorites"):
         st.session_state['main'] = 'favorites'
+    if st.sidebar.button("Orders"):
+        st.session_state['main'] = 'orders'
 else:
     # Show Login form when not logged in
     st.sidebar.subheader("Login")
@@ -58,7 +61,7 @@ if st.session_state['main'] == 'main':
 
             st.header("Search Results")
             for index, row in df.iterrows():
-                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])  # Adjust column widths as needed
+                col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 2])  # Adjust column widths as needed
                 with col1:
                     st.text(row["name"])
                 with col2:
@@ -67,7 +70,11 @@ if st.session_state['main'] == 'main':
                     st.text(f"Stock: {row['stock']}")
                 with col4:
                     if st.session_state['jwt_token'] is not None:
-                        if st.button("Add to Favorites", key=f"add_{row['item_id']}"):
+                        if st.button("Add to Order", key=f"add_item_{row['item_id']}"):
+                            add_item_to_order(st.session_state['jwt_token'], row['item_id'])
+                with col5:
+                    if st.session_state['jwt_token'] is not None:
+                        if st.button("Add to Favorites", key=f"add_favorite_{row['item_id']}"):
                             add_favorites(st.session_state['jwt_token'], row['item_id'])
         else:
             st.error(f"No Results for {search_query}")
@@ -80,7 +87,7 @@ if st.session_state['main'] == 'main':
                 st.header("Items")
 
                 for index, row in df.iterrows():
-                    col1, col2, col3, col4 = st.columns([2, 2, 2, 1])  # Adjust column widths as needed
+                    col1, col2, col3, col4, col5 = st.columns([2, 2, 2, 2, 2])  # Adjust column widths as needed
                     with col1:
                         st.text(row["name"])
                     with col2:
@@ -89,7 +96,11 @@ if st.session_state['main'] == 'main':
                         st.text(f"Stock: {row['stock']}")
                     with col4:
                         if st.session_state['jwt_token'] is not None:
-                            if st.button("Add to Favorites", key=f"add_{row['item_id']}"):
+                            if st.button("Add to Order", key=f"add_item_{row['item_id']}"):
+                                add_item_to_order(st.session_state['jwt_token'], row['item_id'])
+                    with col5:
+                        if st.session_state['jwt_token'] is not None:
+                            if st.button("Add to Favorites", key=f"add_favorite_{row['item_id']}"):
                                 add_favorites(st.session_state['jwt_token'], row['item_id'])
             else:
                 st.error("Unexpected data format received.")
@@ -104,4 +115,8 @@ if st.session_state['main'] == 'register' and not st.session_state['jwt_token']:
 # Favorites
 if st.session_state['main'] == 'favorites':
     set_favorites_page()
+
+# Orders
+if st.session_state['main'] == 'orders':
+    set_orders_page()
 

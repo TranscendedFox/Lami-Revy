@@ -36,7 +36,6 @@ CREATE TABLE orders (
     user_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     shipping_address VARCHAR(255) NOT NULL,
-    total_price DECIMAL(10, 2) NOT NULL,
     status ENUM('TEMP', 'CLOSE') DEFAULT 'TEMP',
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );

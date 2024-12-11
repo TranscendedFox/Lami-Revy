@@ -1,6 +1,5 @@
 from fastapi.security import OAuth2PasswordBearer
 from starlette import status
-from fastapi import APIRouter
 from fastapi import APIRouter, Depends
 from service import favorites_service
 from service import auth_service
