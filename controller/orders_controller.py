@@ -44,7 +44,7 @@ async def remove_item(item_id, order_id, token: str = Depends(oauth2_bearer)):
     if user_response is None:
         raise token_exception()
     else:
-        await orders_service.remove_item(order_id, item_id)
+        await orders_service.remove_item(user_response.id, order_id, item_id)
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -53,4 +53,4 @@ async def confirm_order(token: str = Depends(oauth2_bearer)):
     if user_response is None:
         raise token_exception()
     else:
-        await orders_service.confirm_order(user_response.id)
+        return await orders_service.confirm_order(user_response.id)

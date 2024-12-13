@@ -13,4 +13,4 @@ class Config(BaseSettings):
     DATABASE_URL: str = f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}@{MYSQL_HOST}:{MYSQL_PORT}/{MYSQL_DATABASE}"
     SECRET_KEY: str = "lamy_revy"
     ALGORITHM: str = "HS256"
-    TOKEN_EXPIRY_TIME: float = 20.0
+    TOKEN_EXPIRY_TIME: float = 100.0

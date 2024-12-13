@@ -89,10 +89,21 @@ async def reduce_item_quantity(item_id, amount):
         raise ValueError(
             f"Insufficient stock for item_id={item_id}. Available: {current_stock['stock'] if current_stock else 0}, Requested: {amount}")
 
-    # Update the stock if sufficient
     query_update_stock = f"""
             UPDATE {TABLE_NAME}
             SET stock = stock - :amount
             WHERE item_id = :item_id
         """
     await database.execute(query_update_stock, values={"amount": amount, "item_id": item_id})
+
+
+async def update_items_cache():
+    if cache_repository.is_key_exists(ALL_ITEMS_CACHE_ID):
+        query = f"SELECT * FROM {TABLE_NAME} WHERE stock > 0"
+        results = await database.fetch_all(query)
+        if results:
+            items = [Item(**result) for result in results]
+            for item in items:
+                item.json()
+            items_json = json.dumps([item.dict() for item in items])
+            cache_repository.update_cache_entity(ALL_ITEMS_CACHE_ID, items_json)

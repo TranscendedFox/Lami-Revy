@@ -1,8 +1,9 @@
 import json
-# from repository import cache_repository
+from repository import cache_repository
 from repository.database import database
 from repository.user_repository import get_by_id
-from repository.items_repository import get_items_by_list, reduce_item_quantity
+from datetime import datetime
+from decimal import Decimal
 
 ORDERS_TABLE_NAME = "orders"
 ORDERS_ITEMS_TABLE_NAME = "order_items"
@@ -11,144 +12,235 @@ ORDERS_CACHE_ID = "orders"
 
 
 async def get_temp_order(user_id):
-    query = f"""
-        SELECT o.*, 
-               JSON_ARRAYAGG(
-                   JSON_OBJECT(
-                       'item_id', i.item_id,
-                       'name', i.name,
-                       'price', i.price,
-                       'quantity', oi.quantity
-                   )
-               ) AS items
+    cache_id = TEMP_ORDER_CACHE_ID + f"_{user_id}"
+    if cache_repository.is_key_exists(cache_id):
+        cached_data = cache_repository.get_cache_entity(cache_id)
+        return json.loads(cached_data)
+
+    order_query = f"""
+        SELECT o.*, oi.item_id, i.name, i.price, oi.quantity
         FROM {ORDERS_TABLE_NAME} o
         LEFT JOIN {ORDERS_ITEMS_TABLE_NAME} oi ON o.order_id = oi.order_id
         LEFT JOIN items i ON oi.item_id = i.item_id
         WHERE o.user_id = :user_id AND o.status = 'TEMP'
-        GROUP BY o.order_id
     """
-    temp_result = await database.fetch_one(query, values={"user_id": user_id})
-    if temp_result:
-        temp_order = dict(temp_result)
-        temp_order["items"] = json.loads(temp_order["items"]) if temp_order["items"] else []
-        return temp_result
+    results = await database.fetch_all(order_query, values={"user_id": user_id})
+
+    if not results:
+        return None
+    orders = translate_order_to_dictionary(results)
+    order_json = json.dumps(list(orders.values())[0])
+    cache_repository.update_cache_entity(cache_id, order_json)
+
+    if orders:
+        return list(orders.values())[0]
     return None
 
 
 async def get_orders_history(user_id):
-    query = f"""
-        SELECT o.*, 
-               JSON_ARRAYAGG(
-                   JSON_OBJECT(
-                       'item_id', i.item_id,
-                       'name', i.name,
-                       'price', i.price,
-                       'quantity', oi.quantity
-                   )
-               ) AS items
+    cache_id = ORDERS_CACHE_ID + f"_{user_id}"
+    if cache_repository.is_key_exists(cache_id):
+        cached_data = cache_repository.get_cache_entity(cache_id)
+        return json.loads(cached_data)
+
+    order_query = f"""
+        SELECT o.*, oi.item_id, i.name, i.price, oi.quantity
         FROM {ORDERS_TABLE_NAME} o
         LEFT JOIN {ORDERS_ITEMS_TABLE_NAME} oi ON o.order_id = oi.order_id
         LEFT JOIN items i ON oi.item_id = i.item_id
         WHERE o.user_id = :user_id AND o.status = 'CLOSE'
-        GROUP BY o.order_id
     """
-    close_results = await database.fetch_all(query, values={"user_id": user_id})
+    results = await database.fetch_all(order_query, values={"user_id": user_id})
 
-    if close_results:
-        close_orders = []
-        for order in close_results:
-            order_dict = dict(order)
-            order_dict["items"] = json.loads(order_dict["items"]) if order_dict["items"] else []
-            close_orders.append(order_dict)
-        return close_orders
-    return None
+    if not results:
+        return None
+
+    orders = translate_order_to_dictionary(results)
+    orders_list = list(orders.values())
+    orders_json = json.dumps(orders_list)
+    cache_repository.update_cache_entity(cache_id, orders_json)
+
+    return list(orders.values())
 
 
 async def add_item(user_id, item_id):
     temp_order = await get_temp_order(user_id)
+    cache_id = TEMP_ORDER_CACHE_ID + f"_{user_id}"
 
     if temp_order:
-        query = f"""
+        insert_query = f"""
             INSERT INTO {ORDERS_ITEMS_TABLE_NAME} (order_id, item_id, quantity)
             VALUES (:order_id, :item_id, :quantity)
-            ON DUPLICATE KEY UPDATE quantity = quantity + 1"""
-
-        values = {
-            "order_id": temp_order.order_id,
+            ON DUPLICATE KEY UPDATE quantity = quantity + :quantity
+        """
+        insert_values = {
+            "order_id": temp_order["order_id"],
             "item_id": item_id,
             "quantity": 1
         }
-        await database.execute(query, values)
-        return {"status": "success", "message": "Item added to order."}
+        await database.execute(insert_query, insert_values)
+
+        fetch_query = f"""
+            SELECT o.*, oi.item_id, i.name, i.price, oi.quantity
+            FROM {ORDERS_TABLE_NAME} o
+            LEFT JOIN {ORDERS_ITEMS_TABLE_NAME} oi ON o.order_id = oi.order_id
+            LEFT JOIN items i ON oi.item_id = i.item_id
+            WHERE o.order_id = :order_id
+        """
+        fetch_values = {"order_id": temp_order["order_id"]}
+        result = await database.fetch_all(fetch_query, fetch_values)
+
+        orders = translate_order_to_dictionary(result)
+        order = list(orders.values())[0]
+        order_json = json.dumps(order)
+        cache_repository.update_cache_entity(cache_id, order_json)
+
+        return {"status": "success", "message": "Item added to order.", "order": order}
     else:
         user = await get_by_id(user_id)
         if user is None:
             return {"status": "failed", "message": "User invalid."}
 
-        query = f"""
-                INSERT INTO {ORDERS_TABLE_NAME} (user_id, shipping_address)
-                VALUES (:user_id, :shipping_address)
-            """
-        values = {
+        insert_order_query = f"""
+            INSERT INTO {ORDERS_TABLE_NAME} (user_id, shipping_address)
+            VALUES (:user_id, :shipping_address)
+        """
+        insert_order_values = {
             "user_id": user_id,
             "shipping_address": f"{user.address_country}, {user.address_city}"
         }
-        new_order_id = await database.execute(query, values)
+        new_order_id = await database.execute(insert_order_query, values=insert_order_values)
 
-        query = f"""
-                INSERT INTO {ORDERS_ITEMS_TABLE_NAME} (order_id, item_id, quantity)
-                VALUES (:order_id, :item_id, :quantity)
-            """
-        values = {
+        insert_item_query = f"""
+            INSERT INTO {ORDERS_ITEMS_TABLE_NAME} (order_id, item_id, quantity)
+            VALUES (:order_id, :item_id, :quantity)
+        """
+        insert_item_values = {
             "order_id": new_order_id,
             "item_id": item_id,
             "quantity": 1
         }
-        await database.execute(query, values)
+        await database.execute(insert_item_query, values=insert_item_values)
+
+        select_order_query = f"""
+            SELECT o.*, oi.item_id, i.name, i.price, oi.quantity
+            FROM {ORDERS_TABLE_NAME} o
+            LEFT JOIN {ORDERS_ITEMS_TABLE_NAME} oi ON o.order_id = oi.order_id
+            LEFT JOIN items i ON oi.item_id = i.item_id
+            WHERE o.order_id = :order_id
+        """
+        select_order_values = {"order_id": new_order_id}
+        result = await database.fetch_one(select_order_query, values=select_order_values)
+        order = translate_order_to_dictionary(result)
+        order_json = json.dumps(list(order.values())[0])
+        cache_repository.update_cache_entity(cache_id, order_json)
         return {"status": "success", "message": "New order created and item added."}
 
 
-async def remove_item(order_id, item_id):
-    query = f"""
+async def remove_item(user_id, order_id, item_id):
+    cache_id = TEMP_ORDER_CACHE_ID + f"_{user_id}"
+
+    delete_query = f"""
         DELETE FROM {ORDERS_ITEMS_TABLE_NAME}
-        WHERE order_id = :order_id AND item_id = :item_id"""
-    values = {"order_id": order_id, "item_id": item_id}
-    await database.execute(query, values)
-    # await update_cache(user_id)
+        WHERE order_id = :order_id AND item_id = :item_id
+    """
+    delete_values = {"order_id": order_id, "item_id": item_id}
+    await database.execute(delete_query, delete_values)
+
+    count_query = f"""
+        SELECT COUNT(*) as item_count
+        FROM {ORDERS_ITEMS_TABLE_NAME}
+        WHERE order_id = :order_id
+    """
+    count_values = {"order_id": order_id}
+    item_count_result = await database.fetch_one(count_query, count_values)
+    item_count = item_count_result["item_count"] if item_count_result else 0
+
+    if item_count == 0:
+        delete_order_query = f"""
+               DELETE FROM {ORDERS_TABLE_NAME}
+               WHERE order_id = :order_id;              
+           """
+        await database.execute(delete_order_query, values={"order_id": order_id})
+        cache_repository.remove_cache_entity(cache_id)
+    else:
+        select_order_query = f"""
+                    SELECT o.*, oi.item_id, i.name, i.price, oi.quantity
+                    FROM {ORDERS_TABLE_NAME} o
+                    LEFT JOIN {ORDERS_ITEMS_TABLE_NAME} oi ON o.order_id = oi.order_id
+                    LEFT JOIN items i ON oi.item_id = i.item_id
+                    WHERE o.order_id = :order_id
+                """
+        result = await database.fetch_all(select_order_query, values={"order_id": order_id})
+        order = translate_order_to_dictionary(result)
+        order_json = json.dumps(list(order.values())[0])
+        cache_repository.update_cache_entity(cache_id, order_json)
+
+        return {"status": "success", "message": "Item removed and order updated.", "order": order}
 
 
-async def confirm_order(user_id):
-    temp_order = await get_temp_order(user_id)
-    if temp_order is None:
-        return {"status": "failed", "message": "Temp order invalid."}
-
-    items = json.loads(temp_order.items)
-    items_ids = []
-    for item in items:
-        items_ids.append(int(item['item_id']))
-
-    items_in_database = await get_items_by_list(items_ids)
-    for order_item in items:
-        item_in_db = next((item for item in items_in_database if item.item_id == order_item["item_id"]), None)
-
-        if not item_in_db:
-            return {"status": "failed", "message": f"Item {order_item['item_id']} not found in stock."}
-
-        if item_in_db.stock < order_item["quantity"]:
-            return {
-                "status": "failed",
-                "message": f"Insufficient stock for item {order_item.item_id} (available: {item_in_db['stock']}, requested: {order_item.quantity})."
-            }
-
-    for order_item in items:
-        await reduce_item_quantity(order_item["item_id"], order_item["quantity"])
+async def confirm_order(temp_order):
+    temp_cache_id = TEMP_ORDER_CACHE_ID + f"_{temp_order.get('user_id')}"
+    close_cache_id = ORDERS_CACHE_ID + f"_{temp_order.get('user_id')}"
 
     query = f"""
             UPDATE {ORDERS_TABLE_NAME}
             SET status = 'CLOSE', created_at = CURRENT_TIMESTAMP
             WHERE order_id = :order_id
         """
-    values = {"order_id": temp_order.order_id}
+    values = {"order_id": temp_order["order_id"]}
     await database.execute(query, values)
 
+    cache_repository.remove_cache_entity(temp_cache_id)
+
+    order_query = f"""
+            SELECT o.*, oi.item_id, i.name, i.price, oi.quantity
+            FROM {ORDERS_TABLE_NAME} o
+            LEFT JOIN {ORDERS_ITEMS_TABLE_NAME} oi ON o.order_id = oi.order_id
+            LEFT JOIN items i ON oi.item_id = i.item_id
+            WHERE o.user_id = :user_id AND o.status = 'CLOSE'
+        """
+    results = await database.fetch_all(order_query, values={"user_id": temp_order.get('user_id')})
+
+    orders = translate_order_to_dictionary(results)
+    orders_list = list(orders.values())
+    orders_json = json.dumps(orders_list)
+    cache_repository.update_cache_entity(close_cache_id, orders_json)
+
     return {"status": "success", "message": "Order confirmed."}
+
+
+def serialize_value(value):
+    if isinstance(value, Decimal):
+        return float(value)  # or str(value) if you prefer
+    elif isinstance(value, datetime):
+        return value.isoformat()
+    return value
+
+
+def translate_order_to_dictionary(data):
+    orders = {}
+    if not isinstance(data, list):
+        data = [data]
+
+    for row in data:
+        order_id = row["order_id"]
+        if order_id not in orders:
+            orders[order_id] = {
+                "order_id": row["order_id"],
+                "user_id": row["user_id"],
+                "status": row["status"],
+                "created_at": row["created_at"].isoformat() if isinstance(row["created_at"], datetime) else row[
+                    "created_at"],
+                "shipping_address": row["shipping_address"],
+                "items": [],
+            }
+        if row["item_id"]:
+            orders[order_id]["items"].append({
+                "item_id": row["item_id"],
+                "name": row["name"],
+                "price": serialize_value(row["price"]),
+                "quantity": row["quantity"],
+            })
+
+    return orders
