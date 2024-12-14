@@ -28,7 +28,7 @@ async def add_favorite(item_id, token: str = Depends(oauth2_bearer)):
     if user_response is None:
         raise token_exception()
     else:
-        await favorites_service.add_favorite(user_response.id, item_id)
+        return await favorites_service.add_favorite(user_response.id, item_id)
 
 
 @router.delete("/{item_id}", status_code=status.HTTP_201_CREATED)

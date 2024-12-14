@@ -26,7 +26,11 @@ def set_favorites_page():
                 with col4:
                     if st.session_state['jwt_token'] is not None:
                         if st.button("Add to Order", key=f"add_item_{row['item_id']}"):
-                            add_item_to_order(st.session_state['jwt_token'], row['item_id'])
+                            response = add_item_to_order(st.session_state['jwt_token'], row['item_id'])
+                            if response['status'] == 'failed':
+                                st.error(response['message'])
+                            else:
+                                st.success(response['message'])
                 with col5:
                     if st.session_state['jwt_token'] is not None:
                         if st.button("Remove", key=f"remove_favorite_{row['item_id']}"):

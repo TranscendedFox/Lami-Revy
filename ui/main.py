@@ -97,11 +97,19 @@ if st.session_state['main'] == 'main':
                     with col4:
                         if st.session_state['jwt_token'] is not None:
                             if st.button("Add to Order", key=f"add_item_{row['item_id']}"):
-                                add_item_to_order(st.session_state['jwt_token'], row['item_id'])
+                                response = add_item_to_order(st.session_state['jwt_token'], row['item_id'])
+                                if response['status'] == 'failed':
+                                    st.error(response['message'])
+                                else:
+                                    st.success(response['message'])
                     with col5:
                         if st.session_state['jwt_token'] is not None:
                             if st.button("Add to Favorites", key=f"add_favorite_{row['item_id']}"):
-                                add_favorites(st.session_state['jwt_token'], row['item_id'])
+                                response = add_favorites(st.session_state['jwt_token'], row['item_id'])
+                                if response['status'] == 'failed':
+                                    st.error(response['message'])
+                                else:
+                                    st.success(response['message'])
             else:
                 st.error("Unexpected data format received.")
         else:

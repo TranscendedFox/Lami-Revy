@@ -38,8 +38,12 @@ def set_orders_page():
                 st.text(f"Total price: {total_price:.2f}")
 
             if st.button("Confirm Order", key="confirm_order"):
-                confirm_order(st.session_state['jwt_token'])
-                st.rerun()
+                response = confirm_order(st.session_state['jwt_token'])
+                if response['status'] == 'failed':
+                    st.error(response['message'])
+                else:
+                    st.success(response['message'])
+                    st.rerun()
         else:
             st.info("No temporary order available.")
 

@@ -78,6 +78,14 @@ async def get_items_by_list(items: List[int]):
     return [Item(**row) for row in rows]
 
 
+async  def get_item(item_id):
+    query = f"""
+                SELECT * FROM {TABLE_NAME}
+                WHERE item_id = :item_id
+            """
+    return await database.fetch_one(query, values={"item_id": item_id})
+
+
 async def reduce_item_quantity(item_id, amount):
     query_check_stock = f"""
             SELECT stock FROM {TABLE_NAME}

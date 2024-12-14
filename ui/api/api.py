@@ -55,7 +55,7 @@ def add_favorites(token, item_id):
     url = f"{BASE_URL}/favorites/{item_id}"
     headers = {"Authorization": f"Bearer {token}"}
     response = requests.post(url, headers=headers)
-    return response
+    return response.json()
 
 
 def remove_favorite(token, item_id):
@@ -69,7 +69,7 @@ def add_item_to_order(token, item_id):
     url = f"{BASE_URL}/orders/{item_id}"
     headers = {"Authorization": f"Bearer {token}"}
     response = requests.post(url, headers=headers)
-    return response
+    return response.json()
 
 
 def get_orders(token):
@@ -88,4 +88,5 @@ def remove_item_from_order(token, order_id, item_id):
 def confirm_order(token):
     url = f"{BASE_URL}/orders"
     headers = {"Authorization": f"Bearer {token}"}
-    requests.post(url, headers=headers)
+    response = requests.post(url, headers=headers)
+    return response.json()

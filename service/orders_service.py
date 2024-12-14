@@ -1,5 +1,5 @@
 from repository import orders_repository
-from repository.items_repository import get_items_by_list, reduce_item_quantity, update_items_cache
+from repository.items_repository import get_item, get_items_by_list, reduce_item_quantity, update_items_cache
 from repository.favorites_repository import update_favorite_cache
 
 
@@ -12,7 +12,11 @@ async def get_temp_order(user_id):
 
 
 async def add_item(user_id, item_id):
-    await orders_repository.add_item(user_id, item_id)
+    item = await get_item(item_id)
+    if item.stock > 0:
+        return await orders_repository.add_item(user_id, item_id)
+    else:
+        return {"status": "failed", "message": "No stock available."}
 
 
 async def remove_item(user_id, order_id, item_id):
@@ -38,7 +42,8 @@ async def confirm_order(user_id):
         if item_in_db.stock < order_item["quantity"]:
             return {
                 "status": "failed",
-                "message": f"Insufficient stock for item {order_item.item_id} (available: {item_in_db['stock']}, requested: {order_item.quantity})."
+                "message": f"Insufficient stock for item {order_item.item_id} (available: {item_in_db['stock']}, "
+                           f"requested: {order_item.quantity})."
             }
 
     for order_item in temp_order.get('items'):

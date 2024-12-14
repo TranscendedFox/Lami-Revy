@@ -36,8 +36,15 @@ async def add_favorite(user_id, item_id):
     INSERT INTO {FAVORITES_TABLE_NAME} (user_id, item_id)
     VALUES (:user_id, :item_id)"""
     values = {"user_id": user_id, "item_id": item_id}
-    await database.execute(query, values)
-    await update_favorite_cache(user_id)
+
+    try:
+        await database.execute(query, values)
+        await update_favorite_cache(user_id)
+        return {"status": "success", "message": "Item added to favorites."}
+    except Exception as e:
+        if "Duplicate entry" in str(e):
+            return {"status": "failed", "message": "Item is already in favorites."}
+        return {"status": "error", "message": f"An unexpected error occurred: {str(e)}"}
 
 
 async def remove_favorite(user_id, item_id):

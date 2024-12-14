@@ -35,7 +35,7 @@ async def add_item(item_id, token: str = Depends(oauth2_bearer)):
     if user_response is None:
         raise token_exception()
     else:
-        await orders_service.add_item(user_response.id, item_id)
+        return await orders_service.add_item(user_response.id, item_id)
 
 
 @router.delete("/{order_id}/{item_id}", status_code=status.HTTP_201_CREATED)

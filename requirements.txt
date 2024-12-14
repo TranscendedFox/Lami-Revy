@@ -17,3 +17,4 @@ pandas
 re
 requests
 jose
+openai
