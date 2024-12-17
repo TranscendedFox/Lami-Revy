@@ -90,3 +90,30 @@ def confirm_order(token):
     headers = {"Authorization": f"Bearer {token}"}
     response = requests.post(url, headers=headers)
     return response.json()
+
+
+def get_chat(token):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{BASE_URL}/chat/"
+    request = requests.get(url, headers=headers)
+    if request is not None:
+        return request.json()
+    else:
+        return None
+
+
+def set_message(token, message):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{BASE_URL}/chat/"
+    request = {
+        "message": message,
+    }
+
+    requests.post(url, headers=headers, json=request)
+
+
+def reset_chat(token):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"{BASE_URL}/chat/"
+
+    requests.delete(url, headers=headers)

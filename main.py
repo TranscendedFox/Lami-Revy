@@ -4,6 +4,7 @@ from controller.user_controller import router as user_router
 from controller.items_controller import router as items_router
 from controller.favorites_controller import router as favorites_router
 from controller.orders_controller import router as orders_router
+from controller.chat_controller import router as chat_router
 from repository.database import database
 
 app = FastAPI()
@@ -24,3 +25,4 @@ app.include_router(user_router)
 app.include_router(items_router)
 app.include_router(favorites_router)
 app.include_router(orders_router)
+app.include_router(chat_router)

@@ -1,21 +1,21 @@
 import streamlit as st
-from api.api import get_jwt_token, get_all_items, search_items, add_favorites, add_item_to_order
+from api.api import get_jwt_token, get_all_items, search_items, add_favorites, add_item_to_order, reset_chat
 import pandas as pd
 from register import set_register_page
 from favorites import set_favorites_page
 from orders import set_orders_page
+from chat import set_chat_page
 
-# Initialize session state variables
 if 'main' not in st.session_state:
     st.session_state['main'] = 'main'
 if 'jwt_token' not in st.session_state:
     st.session_state['jwt_token'] = None
+if 'responses_count' not in st.session_state:
+    st.session_state['responses_count'] = 0
 
 st.title("Lamy Revi")
 
-# Sidebar User Management
 if st.session_state['jwt_token']:
-    # Show Logout button when logged in
     st.sidebar.header("Welcome!")
     if st.sidebar.button("Logout", key="sidebar_logout_button"):
         st.session_state['jwt_token'] = None
@@ -28,8 +28,11 @@ if st.session_state['jwt_token']:
         st.session_state['main'] = 'favorites'
     if st.sidebar.button("Orders"):
         st.session_state['main'] = 'orders'
+    if st.sidebar.button("Chat"):
+        reset_chat(st.session_state['jwt_token'])
+        st.session_state['responses_count'] = 0
+        st.session_state['main'] = 'chat'
 else:
-    # Show Login form when not logged in
     st.sidebar.subheader("Login")
     login_username = st.sidebar.text_input("Username", key="login_username")
     login_password = st.sidebar.text_input("Password", type='password', key="login_password")
@@ -38,18 +41,16 @@ else:
         if token:
             st.session_state['jwt_token'] = token
             st.sidebar.success("Logged in successfully!")
-            st.session_state.show_registration_form = False  # Hide registration form
+            st.session_state.show_registration_form = False
             st.rerun()
         else:
             st.sidebar.error("Login failed. Check your credentials.")
 
-    # Show Register button when not logged in
     st.sidebar.subheader("New User?")
     if st.sidebar.button("Register", key="sidebar_register_button"):
         st.session_state['main'] = 'register'
 
 
-# Main
 if st.session_state['main'] == 'main':
     st.header("Search")
     search_query = st.text_input("Enter your search query:", key="search_bar")
@@ -116,15 +117,14 @@ if st.session_state['main'] == 'main':
             st.error(f"Failed to fetch items. Status code: {items_response.status_code}")
 
 
-# Register Content
 if st.session_state['main'] == 'register' and not st.session_state['jwt_token']:
     set_register_page()
 
-# Favorites
 if st.session_state['main'] == 'favorites':
     set_favorites_page()
 
-# Orders
 if st.session_state['main'] == 'orders':
     set_orders_page()
 
+if st.session_state['main'] == 'chat':
+    set_chat_page()

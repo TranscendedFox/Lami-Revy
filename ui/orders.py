@@ -1,6 +1,5 @@
 import streamlit as st
 from api.api import get_orders, remove_item_from_order, confirm_order
-import json
 
 
 def set_orders_page():
