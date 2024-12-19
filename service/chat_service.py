@@ -1,4 +1,6 @@
 from repository import chat_repository
+from service.items_service import get_all_items
+from openAIClient.openai_client import get_response
 
 
 async def get_chat(user_id):
@@ -15,12 +17,11 @@ async def set_message(user_id, message):
             return {"error": "User has already sent 5 or more messages."}
 
     else:
-        await chat_repository.set_system(user_id)
+        await chat_repository.set_system(user_id, await get_all_items())
 
     await chat_repository.set_message(user_id, message, "user")
 
-    # TODO get the open AI response
-    openai_response = "RESPONSE"
+    openai_response = get_response(await get_chat(user_id))
     await chat_repository.set_message(user_id, openai_response, "assistant")
 
 

@@ -11,7 +11,8 @@ ALL_ITEMS_CACHE_ID = "all_items"
 async def get_all_items():
     if cache_repository.is_key_exists(ALL_ITEMS_CACHE_ID):
         string_items = cache_repository.get_cache_entity(ALL_ITEMS_CACHE_ID)
-        return json.loads(string_items)
+        cached_items = json.loads(string_items)
+        return [Item(**item) for item in cached_items]
     query = f"SELECT * FROM {TABLE_NAME} WHERE stock > 0"
     results = await database.fetch_all(query)
     if results:
@@ -20,7 +21,7 @@ async def get_all_items():
             item.json()
         items_json = json.dumps([item.dict() for item in items])
         cache_repository.update_cache_entity(ALL_ITEMS_CACHE_ID, items_json)
-        return [Item(**result) for result in results]
+        return items
     else:
         return None
 
