@@ -1,8 +1,6 @@
 from starlette import status
-
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-
 from exceptions.security_exceptions import user_credentials_exception
 from model.auth_response import AuthResponse
 from service import auth_service

@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List
-from pydantic import BaseModel, condecimal, constr
+from pydantic import BaseModel, constr
 from model.order_item import OrderItem
 
 

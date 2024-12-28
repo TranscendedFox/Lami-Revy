@@ -1,7 +1,5 @@
 from typing import Optional
-
 from passlib.context import CryptContext
-
 from exceptions.security_exceptions import username_taken_exception
 from model.user import User
 from model.user_request import UserRequest

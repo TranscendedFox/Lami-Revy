@@ -19,7 +19,7 @@ if st.session_state['jwt_token']:
     st.sidebar.header("Welcome!")
     if st.sidebar.button("Logout", key="sidebar_logout_button"):
         st.session_state['jwt_token'] = None
-        st.session_state.show_registration_form = False  # Hide registration form
+        st.session_state.show_registration_form = False
         st.sidebar.success("Logged out successfully!")
         st.rerun()
     if st.sidebar.button("Main page"):

@@ -1,5 +1,4 @@
 from typing import Optional
-
 from model.user import User
 from model.user_request import UserRequest
 from repository.database import database
@@ -21,7 +20,7 @@ async def get_by_username(username: str) -> Optional[User]:
     result = await database.fetch_one(query, values={"username": username})
     if result:
         print(result)
-        # Map tuple to a dictionary with field names
+
         result_dict = {
             "user_id": result[0],
             "username": result[1],

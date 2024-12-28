@@ -1,6 +1,7 @@
 import streamlit as st
 from api.api import register_user
 
+
 def set_register_page():
     st.header("Register")
     username = st.text_input("Username", key="register_username")
@@ -17,6 +18,6 @@ def set_register_page():
                                           password)
         if register_response.status_code == 201:
             st.success("Registered successfully!")
-            st.session_state.show_registration_form = False  # Hide registration form after success
+            st.session_state.show_registration_form = False
         else:
             st.error("Failed to register.")

@@ -27,27 +27,23 @@ async def get_all_items():
 
 
 async def get_items_by_search(name_query: Optional[List[str]] = None, conditions: Optional[List[dict]] = None):
-    # Base query
+
     query = f"SELECT * FROM {TABLE_NAME} WHERE 1=1"
 
-    # Add name filter
     if name_query:
         name_conditions = " OR ".join([f"name LIKE :keyword{i}" for i in range(len(name_query))])
         query += f" AND ({name_conditions})"
 
-    # Add conditions for amount and price
     if conditions:
         for condition in conditions:
             field = condition['type']
             operator = condition['operator']
-            value = condition['value']
 
             if field == "amount":
                 query += f" AND stock {operator} :stock_value"
             elif field == "price":
                 query += f" AND price {operator} :price_value"
 
-    # Prepare query parameters
     params = {}
     if name_query:
         for i, keyword in enumerate(name_query):
@@ -58,7 +54,6 @@ async def get_items_by_search(name_query: Optional[List[str]] = None, conditions
         elif condition['type'] == "price":
             params["price_value"] = condition['value']
 
-    # Execute query
     results = await database.fetch_all(query, values=params)
     if results:
         return [Item(**result) for result in results]
@@ -79,7 +74,7 @@ async def get_items_by_list(items: List[int]):
     return [Item(**row) for row in rows]
 
 
-async  def get_item(item_id):
+async def get_item(item_id):
     query = f"""
                 SELECT * FROM {TABLE_NAME}
                 WHERE item_id = :item_id

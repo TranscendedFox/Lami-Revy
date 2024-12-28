@@ -1,5 +1,4 @@
 from typing import Optional
-
 from redisClient.redis_client import redis_client
 from config.config import Config
 

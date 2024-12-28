@@ -3,7 +3,7 @@ import openai
 
 from openai import OpenAI
 
-#ENTER KEY
+# ENTER KEY
 os.environ[
     "OPENAI_API_KEY"] = ""
 
