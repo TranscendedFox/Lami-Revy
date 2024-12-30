@@ -3,7 +3,7 @@ import requests
 BASE_URL = "http://localhost:8000"
 
 
-def register_user(username, first_name, last_name, email, phone, address_city, address_country, password):
+def register_user(username, first_name, last_name, email, phone, address_city, address_country, password, gender, age, annual_income):
     url = f"{BASE_URL}/user/"
     payload = {
         "username": username,
@@ -13,7 +13,10 @@ def register_user(username, first_name, last_name, email, phone, address_city, a
         "phone": phone,
         "address_city": address_city,
         "address_country": address_country,
-        "password": password
+        "password": password,
+        "gender": gender,
+        "age": age,
+        "annual_income": annual_income
     }
     response = requests.post(url, json=payload)
     return response

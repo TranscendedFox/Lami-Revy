@@ -41,7 +41,10 @@ async def get_user_by_id(user_id: int) -> Optional[UserResponse]:
             email=user.email,
             phone=user.phone,
             address_city=user.address_city,
-            address_country=user.address_country
+            address_country=user.address_country,
+            gender=user.gender,
+            age=user.age,
+            annual_income= user.annual_income
         )
     else:
         return None

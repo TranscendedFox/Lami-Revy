@@ -18,3 +18,5 @@ re
 requests
 jose
 openai
+sklearn
+joblib

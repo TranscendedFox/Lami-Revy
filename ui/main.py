@@ -41,7 +41,7 @@ else:
         if token:
             st.session_state['jwt_token'] = token
             st.sidebar.success("Logged in successfully!")
-            st.session_state.show_registration_form = False
+            st.session_state['main'] = 'main'
             st.rerun()
         else:
             st.sidebar.error("Login failed. Check your credentials.")

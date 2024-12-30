@@ -13,7 +13,10 @@ CREATE TABLE users (
     phone VARCHAR(15),
     address_city VARCHAR(50),
     address_country VARCHAR(50),
-    hashed_password  VARCHAR(255) NOT NULL
+    hashed_password  VARCHAR(255) NOT NULL,
+    gender ENUM('Male', 'Female', 'Other') NOT NULL,
+    age INT,
+    annual_income DECIMAL(10, 2)
 );
 
 CREATE TABLE items (

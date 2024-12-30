@@ -19,7 +19,6 @@ async def get_by_username(username: str) -> Optional[User]:
     query = f"SELECT * FROM {TABLE_NAME} WHERE username=:username"
     result = await database.fetch_one(query, values={"username": username})
     if result:
-        print(result)
 
         result_dict = {
             "user_id": result[0],
@@ -30,7 +29,10 @@ async def get_by_username(username: str) -> Optional[User]:
             "phone": result[5],
             "address_city": result[6],
             "address_country": result[7],
-            "hashed_password": result[8]
+            "hashed_password": result[8],
+            "gender": result[9],
+            "age": result[10],
+            "annual_income": result[11]
         }
         return User(**result_dict)
     else:
@@ -40,8 +42,8 @@ async def get_by_username(username: str) -> Optional[User]:
 async def create_user(user: UserRequest, hashed_password: str):
     query = f"""
         INSERT INTO {TABLE_NAME} (first_name, last_name, email, phone, address_city, address_country, username, 
-        hashed_password) VALUES (:first_name, :last_name, :email, :phone, :address_city, :address_country, :username, 
-        :hashed_password)"""
+        hashed_password, gender, age, annual_income) VALUES (:first_name, :last_name, :email, :phone, :address_city, :address_country, :username, 
+        :hashed_password, :gender, :age, :annual_income)"""
     user_dict = user.dict()
     del user_dict["password"]
     values = {**user_dict, "hashed_password": hashed_password}
