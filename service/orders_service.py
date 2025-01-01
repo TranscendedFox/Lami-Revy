@@ -42,8 +42,8 @@ async def confirm_order(user_id):
         if item_in_db.stock < order_item["quantity"]:
             return {
                 "status": "failed",
-                "message": f"Insufficient stock for item {order_item.item_id} (available: {item_in_db['stock']}, "
-                           f"requested: {order_item.quantity})."
+                "message": f"Insufficient stock for item {order_item['name']} (available: {item_in_db.stock}, "
+                           f"requested: {order_item['quantity']})."
             }
 
     for order_item in temp_order.get('items'):

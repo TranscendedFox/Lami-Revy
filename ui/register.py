@@ -18,6 +18,13 @@ def set_register_page():
     annual_income = st.number_input("Annual Income ($)", min_value=0.0, step=1000.0, key="register_annual_income")
 
     if st.button("Register", key="form_register_button"):
+        if not username.strip():
+            st.error("Username is required.")
+            return
+        if not email.strip():
+            st.error("Email is required.")
+            return
+
         user_request = {
             "username": username,
             "first_name": first_name,
@@ -38,4 +45,4 @@ def set_register_page():
             st.success("Registered successfully!")
             st.session_state.show_registration_form = False
         else:
-            st.error("Failed to register.")
+            st.error(f"Failed to register. {register_response.json().get('detail')}")

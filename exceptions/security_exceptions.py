@@ -18,6 +18,14 @@ def username_taken_exception() -> HTTPException:
     return username_taken_exception_response
 
 
+def email_taken_exception() -> HTTPException:
+    email_taken_exception_response = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="Provided email already taken"
+    )
+    return email_taken_exception_response
+
+
 def user_credentials_exception() -> HTTPException:
     token_exception_response = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

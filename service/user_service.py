@@ -1,6 +1,6 @@
 from typing import Optional
 from passlib.context import CryptContext
-from exceptions.security_exceptions import username_taken_exception
+from exceptions.security_exceptions import username_taken_exception, email_taken_exception
 from model.user import User
 from model.user_request import UserRequest
 from model.user_response import UserResponse
@@ -18,15 +18,26 @@ def verify_password(plain_password, hashed_password) -> bool:
 
 
 async def create_user(user_request: UserRequest):
-    if await validate_unique_username(user_request.username):
-        hashed_password = get_password_hash(user_request.password)
-        await user_repository.create_user(user_request, hashed_password)
-    else:
+    is_username_unique = await validate_unique_username(user_request.username)
+    is_email_unique = await validate_unique_email(user_request.email)
+
+    if not is_username_unique:
         raise username_taken_exception()
+
+    if not is_email_unique:
+        raise email_taken_exception()
+
+    hashed_password = get_password_hash(user_request.password)
+    await user_repository.create_user(user_request, hashed_password)
 
 
 async def validate_unique_username(username: str) -> bool:
     existing_user = await user_repository.get_by_username(username)
+    return existing_user is None
+
+
+async def validate_unique_email(email: str) -> bool:
+    existing_user = await user_repository.get_by_email(email)
     return existing_user is None
 
 

@@ -54,3 +54,27 @@ async def create_user(user: UserRequest, hashed_password: str):
 async def delete_user_by_id(id: int):
     query = f"DELETE FORM {TABLE_NAME} WHERE id =:user_id"
     await database.execute(query, values={"user_id": id})
+
+
+async def get_by_email(email: str) -> Optional[User]:
+    query = f"SELECT * FROM {TABLE_NAME} WHERE email=:email"
+    result = await database.fetch_one(query, values={"email": email})
+    if result:
+
+        result_dict = {
+            "user_id": result[0],
+            "username": result[1],
+            "first_name": result[2],
+            "last_name": result[3],
+            "email": result[4],
+            "phone": result[5],
+            "address_city": result[6],
+            "address_country": result[7],
+            "hashed_password": result[8],
+            "gender": result[9],
+            "age": result[10],
+            "annual_income": result[11]
+        }
+        return User(**result_dict)
+    else:
+        return None

@@ -53,9 +53,11 @@ else:
 
 if st.session_state['main'] == 'main':
     st.header("Search")
-    search_query = st.text_input("Enter your search query:", key="search_bar")
+    search_query = st.text_input("Search bar \n (write 'amount' or 'price' with >/</= to filter)", key="search_bar")
 
     if st.button("Search", key="search_button"):
+        if search_query == "":
+            st.rerun()
         items_data = search_items(search_query)
         if items_data:
             df = pd.DataFrame(items_data)
